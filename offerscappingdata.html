@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Current Offers</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin: 20px;
+        }
+
+        #offersTable {
+            width: 80%;
+            margin: 20px auto;
+            border-collapse: collapse;
+        }
+
+        #offersTable th, #offersTable td {
+            border: 1px solid #ddd;
+            padding: 10px;
+        }
+
+        #getOffersBtn {
+            padding: 10px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <h1>Current Offers</h1>
+    <button id="getOffersBtn" onclick="getCurrentOffers()">Get Current Offers</button>
+    <table id="offersTable">
+        <thead>
+            <tr>
+                <th>Astrologer Name</th>
+                <th>FREE</th>
+                <th>ONE</th>
+                <th>FIVE</th>
+            </tr>
+        </thead>
+        <tbody id="offersBody">
+            <!-- Table body content will be added dynamically -->
+        </tbody>
+    </table>
+
+    <script>
+        function getCurrentOffers() {
+            const apiUrl = 'https://api.betterhalf.ai/v2/astro-talk/astrologers/offers-data';
+
+            // Replace 'your-api-key' with the actual API key if required
+            const headers = {
+                'Content-Type': 'application/json',
+                'Authorization': 'Token 000ed623c1da275c3eacd9c07b4f1ae988769fb8'
+                // Add any other required headers
+            };
+
+            // Fetch data from the API with headers
+            fetch(apiUrl, {
+                method: 'GET',
+                headers: headers
+            })
+                .then(response => response.json())
+                .then(data => {
+                    // Handle the response and update the table
+                    updateTable(data);
+                })
+                .catch(error => {
+                    console.error('Error fetching data:', error);
+                });
+        }
+
+        function updateTable(data) {
+            const offersBody = document.getElementById('offersBody');
+
+            // Clear previous data
+            offersBody.innerHTML = '';
+
+            // Loop through the received data and populate the table
+            for (const astroId in data) {
+                const astroData = data[astroId];
+                const row = document.createElement('tr');
+
+                const astrologerNameCell = document.createElement('td');
+                astrologerNameCell.textContent = astroData.astrologer_name;
+                row.appendChild(astrologerNameCell);
+
+                const freeCell = document.createElement('td');
+                freeCell.textContent = astroData.FREE;
+                row.appendChild(freeCell);
+
+                const oneCell = document.createElement('td');
+                oneCell.textContent = astroData.ONE;
+                row.appendChild(oneCell);
+
+                const fiveCell = document.createElement('td');
+                fiveCell.textContent = astroData.FIVE;
+                row.appendChild(fiveCell);
+
+                offersBody.appendChild(row);
+            }
+        }
+    </script>
+</body>
+</html>
