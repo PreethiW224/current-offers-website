@@ -58,50 +58,65 @@
             };
 
             // Fetch data from the API with headers
-            fetch(apiUrl, {
-                method: 'GET',
-                headers: headers
-            })
-                .then(response => response.json())
-                .then(data => {
-                    // Handle the response and update the table
-                    updateTable(data);
-                })
-                .catch(error => {
-                    console.error('Error fetching data:', error);
-                });
-        }
+             fetch(apiUrl, {
+                        method: 'GET',
+                        headers: headers
+                    })
+                        .then(response => response.json())
+                        .then(data => {
+                            // Handle the response and update the table
+                            updateTable(data);
+                        })
+                        .catch(error => {
+                            console.error('Error fetching data:', error);
+                        });
+                }
 
-        function updateTable(data) {
-            const offersBody = document.getElementById('offersBody');
+                 function updateTable(data) {
+                        const offersBody = document.getElementById('offersBody');
 
-            // Clear previous data
-            offersBody.innerHTML = '';
+                        // Clear previous data
+                        offersBody.innerHTML = '';
 
-            // Loop through the received data and populate the table
-            for (const astroId in data) {
-                const astroData = data[astroId];
-                const row = document.createElement('tr');
+                        // Convert data to an array for sorting
+                        const dataArray = Object.entries(data).map(([astroId, astroData]) => ({
+                            astroId,
+                            astroData
+                        }));
 
-                const astrologerNameCell = document.createElement('td');
-                astrologerNameCell.textContent = astroData.astrologer_name;
-                row.appendChild(astrologerNameCell);
+                        // Sort the array based on the sum of FREE, ONE, and FIVE in descending order
+                        dataArray.sort((a, b) => {
+                            const sumA = a.astroData.FREE + a.astroData.ONE + a.astroData.FIVE;
+                            const sumB = b.astroData.FREE + b.astroData.ONE + b.astroData.FIVE;
+                            return sumB - sumA;
+                        });
 
-                const freeCell = document.createElement('td');
-                freeCell.textContent = astroData.FREE;
-                row.appendChild(freeCell);
+                        // Loop through the sorted data and populate the table
+                        dataArray.forEach(item => {
+                            const astroId = item.astroId;
+                            const astroData = item.astroData;
 
-                const oneCell = document.createElement('td');
-                oneCell.textContent = astroData.ONE;
-                row.appendChild(oneCell);
+                            const row = document.createElement('tr');
 
-                const fiveCell = document.createElement('td');
-                fiveCell.textContent = astroData.FIVE;
-                row.appendChild(fiveCell);
+                            const astrologerNameCell = document.createElement('td');
+                            astrologerNameCell.textContent = astroData.astrologer_name;
+                            row.appendChild(astrologerNameCell);
 
-                offersBody.appendChild(row);
-            }
-        }
+                            const freeCell = document.createElement('td');
+                            freeCell.textContent = astroData.FREE;
+                            row.appendChild(freeCell);
+
+                            const oneCell = document.createElement('td');
+                            oneCell.textContent = astroData.ONE;
+                            row.appendChild(oneCell);
+
+                            const fiveCell = document.createElement('td');
+                            fiveCell.textContent = astroData.FIVE;
+                            row.appendChild(fiveCell);
+
+                            offersBody.appendChild(row);
+                        });
+                    }
     </script>
 </body>
 </html>
