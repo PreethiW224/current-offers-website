@@ -1,40 +1,109 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Current Offers</title>
+    <title>Current Astrologer Capping Data</title>
+    <script src="https://moment.github.io/luxon/global/luxon.js"></script>
     <style>
         body {
-            font-family: Arial, sans-serif;
-            text-align: center;
-            margin: 20px;
+            font-family: 'Roboto', sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background: linear-gradient(45deg, #fff4cd, #ffe68e);
+            min-height: 100vh;
+        }
+
+        header {
+            background-color: transparent;
+            color: #333;
+            margin: 10px;
+            padding: 20px;
+            text-align: left;
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        #pageHeader {
+            padding: 10px;
+            font-size: 32px;
+            color: #333;
+        }
+
+        #subHeader {
+            font-style: italic;
+            color: #777;
+            margin-bottom: 20px;
+        }
+
+        #refreshBtn {
+            padding: 15px 30px;
+            font-size: 18px;
+            cursor: pointer;
+            background-color: #ffc107;
+            border: 2px solid #ffd760;
+            border-radius: 5px;
+            transition: background-color 0.3s, border-color 0.3s, box-shadow 0.3s;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        #refreshBtn:hover {
+            background-color: #ffd760;
+            border-color: #ffc107;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
         }
 
         #offersTable {
             width: 80%;
-            margin: 20px auto;
             border-collapse: collapse;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            border: 2px solid #ffd760;
+            border-radius: 10px;
+            background-color: #fff;
+            margin: 20px 0;
         }
 
-        #offersTable th, #offersTable td {
+        #offersTable th,
+        #offersTable td {
             border: 1px solid #ddd;
-            padding: 10px;
+            padding: 15px;
+            text-align: center;
         }
 
-        #getOffersBtn {
-            padding: 10px;
-            font-size: 16px;
-            cursor: pointer;
+        #offersTable th {
+            background-color: #ffdd76;
+            color: #333;
+        }
+
+        #offersBody tr:hover {
+            background-color: #fff4cd;
+        }
+
+        footer {
+            background-color: #ffdd76;
+            color: #333;
+            text-align: center;
+            width: 100%;
         }
     </style>
 </head>
+
 <body>
-    <h1>Current Offers</h1>
-    <button id="getOffersBtn" onclick="getCurrentOffers()">Get Current Offers</button>
+    <header>
+        <h1 id="pageHeader">Astrologer Capping Data</h1>
+        <p id="subHeader"></p>
+        <button id="refreshBtn" onclick="refreshCappingData()">Refresh Capping Data</button>
+    </header>
+
     <table id="offersTable">
         <thead>
             <tr>
+                <th>Sr. Number</th>
                 <th>Astrologer Name</th>
                 <th>FREE</th>
                 <th>ONE</th>
@@ -46,8 +115,21 @@
         </tbody>
     </table>
 
+    <footer>
+        <p>&copy; Betterhalf Private Limited <span id="currentYear"></span>. All right reserved.</p>
+    </footer>
+
     <script>
-        function getCurrentOffers() {
+        document.addEventListener('DOMContentLoaded', function () {
+            // Load data as soon as the page is loaded
+            refreshCappingData();
+            // Update the sub-header with the current date and time
+            updateSubHeader();
+            // Update the current year in the copyright section
+            document.getElementById('currentYear').textContent = new Date().getFullYear();
+        });
+
+        function refreshCappingData() {
             const apiUrl = 'https://api.betterhalf.ai/v2/astro-talk/astrologers/offers-data';
 
             // Replace 'your-api-key' with the actual API key if required
@@ -57,66 +139,81 @@
                 // Add any other required headers
             };
 
-            // Fetch data from the API with headers
-             fetch(apiUrl, {
-                        method: 'GET',
-                        headers: headers
-                    })
-                        .then(response => response.json())
-                        .then(data => {
-                            // Handle the response and update the table
-                            updateTable(data);
-                        })
-                        .catch(error => {
-                            console.error('Error fetching data:', error);
-                        });
-                }
+            fetch(apiUrl, {
+                method: 'GET',
+                headers: headers
+            })
+                .then(response => response.json())
+                .then(data => {
+                    // Handle the response and update the table
+                    updateTable(data);
+                })
+                .catch(error => {
+                    console.error('Error fetching data:', error);
+                });
+        }
 
-                 function updateTable(data) {
-                        const offersBody = document.getElementById('offersBody');
+        function updateTable(data) {
+            const offersBody = document.getElementById('offersBody');
 
-                        // Clear previous data
-                        offersBody.innerHTML = '';
+            // Convert data to an array for sorting
+            const dataArray = Object.entries(data).map(([astroId, astroData]) => ({
+                astroId,
+                astroData
+            }));
 
-                        // Convert data to an array for sorting
-                        const dataArray = Object.entries(data).map(([astroId, astroData]) => ({
-                            astroId,
-                            astroData
-                        }));
+            // Sort the array based on the sum of FREE, ONE, and FIVE in descending order
+            dataArray.sort((a, b) => {
+                const sumA = a.astroData.FREE + a.astroData.ONE + a.astroData.FIVE;
+                const sumB = b.astroData.FREE + b.astroData.ONE + b.astroData.FIVE;
+                return sumB - sumA;
+            });
 
-                        // Sort the array based on the sum of FREE, ONE, and FIVE in descending order
-                        dataArray.sort((a, b) => {
-                            const sumA = a.astroData.FREE + a.astroData.ONE + a.astroData.FIVE;
-                            const sumB = b.astroData.FREE + b.astroData.ONE + b.astroData.FIVE;
-                            return sumB - sumA;
-                        });
+            // Add a row number to each item after sorting
+            dataArray.forEach((item, index) => {
+                item.rowNumber = index + 1;
+            });
 
-                        // Loop through the sorted data and populate the table
-                        dataArray.forEach(item => {
-                            const astroId = item.astroId;
-                            const astroData = item.astroData;
+            // Clear previous data
+            offersBody.innerHTML = '';
 
-                            const row = document.createElement('tr');
+            // Loop through the sorted data and populate the table
+            dataArray.forEach(item => {
+                const row = document.createElement('tr');
 
-                            const astrologerNameCell = document.createElement('td');
-                            astrologerNameCell.textContent = astroData.astrologer_name;
-                            row.appendChild(astrologerNameCell);
+                const rowNumberCell = document.createElement('td');
+                rowNumberCell.textContent = item.rowNumber;
+                row.appendChild(rowNumberCell);
 
-                            const freeCell = document.createElement('td');
-                            freeCell.textContent = astroData.FREE;
-                            row.appendChild(freeCell);
+                const astrologerNameCell = document.createElement('td');
+                astrologerNameCell.textContent = item.astroData.astrologer_name;
+                row.appendChild(astrologerNameCell);
 
-                            const oneCell = document.createElement('td');
-                            oneCell.textContent = astroData.ONE;
-                            row.appendChild(oneCell);
+                const freeCell = document.createElement('td');
+                freeCell.textContent = item.astroData.FREE;
+                row.appendChild(freeCell);
 
-                            const fiveCell = document.createElement('td');
-                            fiveCell.textContent = astroData.FIVE;
-                            row.appendChild(fiveCell);
+                const oneCell = document.createElement('td');
+                oneCell.textContent = item.astroData.ONE;
+                row.appendChild(oneCell);
 
-                            offersBody.appendChild(row);
-                        });
-                    }
+                const fiveCell = document.createElement('td');
+                fiveCell.textContent = item.astroData.FIVE;
+                row.appendChild(fiveCell);
+
+                offersBody.appendChild(row);
+            });
+        }
+
+        function updateSubHeader() {
+            const subHeader = document.getElementById('subHeader');
+            const currentDate = luxon.DateTime.now().setZone('Asia/Kolkata');
+
+            const formattedDate = currentDate.toFormat('dd-MM-yyyy HH:mm:ss');
+
+            subHeader.textContent = `Current Date & Time (IST): ${formattedDate}`;
+        }
     </script>
 </body>
+
 </html>
