@@ -151,6 +151,9 @@
                 .catch(error => {
                     console.error('Error fetching data:', error);
                 });
+            
+            // After updating the data, also update the current date and time
+            updateSubHeader();
         }
 
         function updateTable(data) {
